@@ -1,58 +1,6 @@
-'''
-1
-'''
-
-def caching_fibonacci():
-    cache = {}  # поясніть як тут впливає словник? що він зберігає?
-    def fibonacci(n):  # звичайний фібоначі
-        if n <= 0: 
-            return 0
-        elif n == 1:
-            return 1
-        elif n in cache:
-            return cache[n]  # чому тут цей словник який нічого не зберігає?
-        
-        cache[n] = fibonacci(n - 1) + fibonacci(n - 2)
-        return cache[n]   # дежавю
-    return fibonacci
-
-
-'''
-2
-'''
-
-from typing import Callable
-import re
-
-text = '''Загальний дохід працівника складається з декількох частин: 1000.01 як основний дохід, доповнений 
-    додатковими надходженнями 27.45 і 324.00 доларів.'''
-
-def generator_numbers(text: str):
-    numbers = re.findall(r"\d+\.\d+", text) # відділяю текст від цифр по формату цифри точка цифри
-    for number in numbers:  
-        yield float(number)   # через генератор назначаю перебирання цифр що отримав з тексту
-
-def sum_profit(text: str, func: Callable[[float], float]) -> None: # отримую флоат оскільки мій генератор вже дає флоат
-    gen = func(text)    # назначаю аргумент генератору щоб його перебрати
-    total_salary = 0    # назначаю перемінну з загальною суммою що мені генератор нагенерує))
-    for salary in gen:    #  грубо кажучи запускаю свій генератор з попередньої функції щоб всі числа перепрацював
-        total_salary += salary    # суммую їх в свою перемінну
-    return total_salary   # ну і вже звичайним поверненням виведу сумму яку нагенерував собі
-
-total_income = sum_profit(text, generator_numbers)
-print(f"Загальний дохід: {total_income}")
-
-'''
-3
-'''
-
-# на доопрацюванні
-
-'''
-4
-'''
-
 import sys
+from HomeWork6m import *
+from HomeWork7m import *
 
 
 def input_error(func):
@@ -88,35 +36,68 @@ def parse_input(user_input):
 
 
 @input_error
-def add_contact(args, contacts):
-    name, phone = args
-    contacts[name] = phone
-    return "Contact added."
+def add_contact(args, book: AddressBook):
+    name, phone, *_ = args
+    record = book.find(name)
+    message = "Contact updated."
+    if record is None:
+        record = Record(name)
+        book.add_record(record)
+        message = "Contact added."
+    if phone:
+        record.add_phone(phone)
+    return message
+
+
+@input_error
+def add_birthday(args, book: AddressBook):
+    name, birthday = args
+    record = book.find(name)
+    if record is None:
+        return "Contact not found."
+    record.add_birthday(birthday)
+    return "Birthday added."
+    
+
+@input_error
+def show_birthday(args, book: AddressBook):
+    name = args[0]
+    record = book.find(name)
+    if record is None:
+        return "Contact not found."
+    return record.birthday if record.birthday else "Birthday not set."
+
+@input_error
+def birthdays(args, book: AddressBook):
+    if args in book:
+        return AddressBook.get_upcoming_birthdays
+    else:
+        return "Theare is non one to be be congratulation"
 
 
 @change_errore
-def change_contact(args, contacts):
+def change_contact(args, book: AddressBook):
     name, phone = args
-    if name in contacts:
-        contacts[name] = phone
+    if name in book:
+        book[name] = phone
         return "Contact changed."
     else:
         return "This name was not found in contacts."
 
 
 @show_phone_errore
-def show_phone(args, contacts):
+def show_phone(args, book: AddressBook):
     name = args[0]
-    if name in contacts:
-        return f"{name}'s phone number is: {contacts[name]}"
+    if name in book:
+        return f"{name}'s phone number is: {book[name]}"
     else:
         return "This name was not found in contacts."
     
 def main():
-    contacts = {}
+    book = AddressBook()
     print("Welcome to the assistant bot! Click the 'help' button to learn about all the commands.")
     while True:
-        print("help/close/exit/add/change/phone/all")
+        print("help/close/exit/add/change/phone/all/add-birthday/show-birthday/birthdays")
         user_input = input("Enter a command: ")
         command, *args = parse_input(user_input)
 
@@ -132,14 +113,23 @@ def main():
             print("change - if you need to do some change;")
             print("phone - you need enter name to see phone number")
             print("all - to see all list that you add")
+            print("add-birthday - Add the date of birth for the specified contact.")
+            print("show-birthday - Show the date of birth for the specified contact.")
+            print("birthdays - Показати дні народження, які відбудуться протягом наступного тижня.")
         elif command == "add":
-            print(add_contact(args, contacts))
+            print(add_contact(args, book))
         elif command == "change":
-            print(change_contact(args, contacts))
+            print(change_contact(args, book))
         elif command == "phone":
-            print(show_phone(args, contacts))
+            print(show_phone(args, book))
         elif command == "all":
-            print(f"Here's all contacts that you've added: {contacts}. Do you need to make any changes?")
+            print(f"Here's all contacts that you've added: {book}. Do you need to make any changes?")
+        elif command == "add-birthday":
+            print(add_birthday(args, book))
+        elif command == "show-birthday":
+            print(show_birthday(args, book))
+        elif command == "birthdays":
+            print(birthdays(args, book))
         else:
             print("Invalid command.")
 
