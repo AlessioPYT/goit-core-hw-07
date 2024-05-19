@@ -83,6 +83,25 @@ class AddressBook(UserDict):
                 congratulation_date_str = date_to_string(birthday_this_year)
                 self.data.append({"name": user["name"], "congratulation_date": congratulation_date_str})
         return self.data
+    
+class Birthday(Field):
+    def __init__(self, value):
+        try:
+            datetime.strptime(value, "%Y.%m.%d").date()
+            if value == True:
+                self.value = value
+        except ValueError:
+            raise ValueError("Invalid date format. Use DD.MM.YYYY")
+
+class Record():
+    def __init__(self, name):
+        self.name = Name(name)
+        self.phones = []
+        self.birthday = Birthday.value
+        
+
+    def add_birthday(self):
+        return self.phones.append(self.birthday)
         
 if __name__ == '__main__':
 # Створення нової адресної книги
@@ -117,4 +136,3 @@ if __name__ == '__main__':
 
     # Видалення запису Jane
     book.delete("Jane")
-        
