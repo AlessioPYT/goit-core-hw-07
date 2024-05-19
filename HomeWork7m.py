@@ -18,5 +18,5 @@ class Record():
         
 
     def add_birthday(self):
-        Phone
+        return self.phones.append(self.birthday)
 
